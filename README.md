@@ -1,5 +1,7 @@
 # trezor-one-lab
 
+Read the write-up: https://codepocketdev.github.io/trezor-one-lab/
+
 Experiments with custom firmware for the Trezor Model One (legacy firmware), plus a host-side bridge.
 Each firmware experiment is a separate patch against upstream trezor-firmware.
 
