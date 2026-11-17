@@ -27,11 +27,11 @@ Tested on real hardware or a real client:
 - NIP-44 module passes all 155 official test vectors.
 - Bridge selftest on relay.primal.net and relay.snort.social.
 - Bridge login and published notes from Coracle and noStrudel.
+- Home-screen mode toggle: right button switches the clock and the NOSTR SIGNER panel (scripts/apply_mode1.sh).
 
 Written but not yet confirmed against a real client or device:
 - Bridge policy options --allow-kinds and --auth-relay.
 - Bridge duplicate-request handling (--dedupe-seconds).
-- Home-screen mode toggle (scripts/apply_mode1.sh), checked only on mock files.
 
 ## Threat model
 
