@@ -71,6 +71,9 @@ li{margin-bottom:.45rem}
 .oled .btn{background:var(--glow);color:var(--screen);padding:0 .5rem;text-shadow:none;font-size:.95rem}
 .caption{font-size:.95rem;color:var(--muted);margin:0 0 2rem}
 .oled.clock{text-align:center;font-size:1.35rem;padding:1.6rem 1.3rem}
+.shot{margin:2rem 0}
+.shot img{width:100%;height:auto;border-radius:6px;display:block}
+.shot figcaption{margin:.6rem 0 0}
 .warn{background:var(--warn-bg);color:var(--warn-ink);padding:1.1rem 1.25rem;border-radius:4px;margin:2rem 0}
 .warn p{margin:0 0 .6rem}
 .warn ul{margin:0}
@@ -154,11 +157,10 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 
 <h2>Experiment one: a clock</h2>
 <p>The first patch had nothing to do with Nostr. It turns the home screen into a clock, and it was the first test of the whole pipeline: building the firmware, flashing it, and sending a custom command to the device over USB.</p>
-<div class="oled clock" role="img" aria-label="Trezor screen showing the time 22:21:11 and the date Sat 07 Nov 2026">
-<div>22:21:11</div>
-<div>Sat 07 Nov 2026</div>
-</div>
-<p class="caption">The clock home screen on the device.</p>
+<figure class="shot">
+<img src="images/clock.jpg" width="1200" height="896" loading="lazy" alt="Close-up of a Trezor Model One screen showing the time 22:21:11 and the date Sat 07 Nov 2026">
+<figcaption class="caption">The clock home screen on a Model One running the patched firmware.</figcaption>
+</figure>
 <p>The home screen shows large <code>HH:MM:SS</code> and a date line, with no logo or URL. The Model One has no real-time clock, so it starts from the build time and counts forward until the PC sets the time. The command is <code>SETTIME &lt;utc_unix_seconds&gt; [&lt;utc_offset_seconds&gt;]</code>, and it travels inside a normal Ping message, so no protobuf changes are needed. The repo includes <code>settime.ps1</code> and <code>settime.sh</code> to send the current time after each plug-in.</p>
 <p>Two caveats. The command is unauthenticated, so anyone with USB access can set the clock. And the time lives in RAM, so unplugging the device loses it. The emulator build uses the host clock until a time is sent.</p>
 
