@@ -4,3 +4,8 @@
 id_*
 *.pem
 .env
+.nostr_bridge.json
+nostr_event.json
+*.bin
+*.pre-*
+*.orig
