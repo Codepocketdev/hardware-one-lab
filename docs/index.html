@@ -179,6 +179,18 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <li>One page per tag.</li>
 <li>Pages for the text, ending with a Sign button.</li>
 </ul>
+<figure class="shot">
+<img src="images/nostr-1-summary.jpg" width="1200" height="896" loading="lazy" alt="Trezor screen showing a summary: Kind 1 note, 1 tag, the tag type, text length, and a note that values follow on the next pages, with Cancel and Next buttons">
+<figcaption class="caption">Page one, the summary: kind, tag count, tag names and text length.</figcaption>
+</figure>
+<figure class="shot">
+<img src="images/nostr-2-tag.jpg" width="1200" height="896" loading="lazy" alt="Trezor screen showing a tag page with the tag value split across lines, with Cancel and Next buttons">
+<figcaption class="caption">Each tag gets its own page, shown as it will be hashed.</figcaption>
+</figure>
+<figure class="shot">
+<img src="images/nostr-3-sign.jpg" width="1200" height="896" loading="lazy" alt="Trezor screen showing Text 1 of 1: morning, with Cancel and Sign buttons">
+<figcaption class="caption">The last page shows the text with a Sign button. Cancel on any page stops the request.</figcaption>
+</figure>
 <p>Limits: ASCII only, content up to 400 characters, up to 20 tags, whole event up to 900 bytes. The bridge refuses anything the device cannot show in full instead of trimming it, because a trimmed review would not be a real review.</p>
 
 <h2>The bridge</h2>
@@ -201,6 +213,10 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <li>The clock home screen runs on the device and takes its time from <code>SETTIME</code>.</li>
 <li>The home-screen mode toggle works on the device.</li>
 </ul>
+<figure class="shot">
+<img src="images/nostr-4-relays.jpg" width="1200" height="896" loading="lazy" alt="noStrudel showing the note morning from a Nostr key ending 7v3r, published to relay.primal.net with a green check and to relay.damus.io still in progress">
+<figcaption class="caption">noStrudel after the device signed: the note is published, with relay.primal.net confirmed and relay.damus.io still pending when the photo was taken.</figcaption>
+</figure>
 <h3>Not tested</h3>
 <ul>
 <li><code>nostrconnect://</code> login, Amethyst and Jumble.</li>
