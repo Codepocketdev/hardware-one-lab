@@ -9,3 +9,4 @@ nostr_event.json
 *.bin
 *.pre-*
 *.orig
+.vercel
