@@ -29,10 +29,9 @@ Tested on real hardware or a real client:
 - Bridge login and published notes from Coracle and noStrudel.
 - Bridge duplicate-request handling (--dedupe-seconds): noStrudel gave one device review and one note per post.
 - Bridge default policy (kinds 1,7): kind 1 notes accepted in both clients.
+- Bridge --auth-relay default (none): no kind 22242 relay-login prompts reached the device in either client.
 - Home-screen mode toggle: right button switches the clock and the NOSTR SIGNER panel (scripts/apply_mode1.sh).
 
-Written but not yet confirmed against a real client or device:
-- Bridge --auth-relay: refusal of kind 22242 relay-login requests not yet observed.
 
 ## Threat model
 

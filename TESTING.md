@@ -13,10 +13,9 @@ Only what was actually observed is listed as verified.
 - noStrudel: login through its Nostr Connect box with the bunker link worked. A note was published to relay.primal.net and relay.damus.io. It produced two sequential sign requests and two identical notes.
 - Mode toggle: the right button on the home screen switches between the clock and the NOSTR SIGNER panel.
 - Retest on 17 Nov 2026 with noStrudel and a second client: one device review and one note per post, no duplicate. Default policy accepted kind 1.
+- Default policy (--auth-relay none): no kind 22242 relay-login prompts reached the device in either client.
 
-## Written but not confirmed against a real client
 
-- --auth-relay: refusal of kind 22242 (NIP-42 relay login) not yet observed.
 
 ## Not tested
 
