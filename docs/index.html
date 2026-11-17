@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signing Nostr events with a Trezor Model One: a lab experiment</title>
+<meta name="description" content="Patched Trezor Model One firmware and a NIP-46 bridge that sign Nostr events after on-device review. Lab experiment, tested with Coracle and noStrudel.">
+<style>
+:root{
+  --paper:#eef0ec;
+  --ink:#171b1d;
+  --muted:#586166;
+  --rule:#cfd4cf;
+  --accent:#2f5d8a;
+  --warn-bg:#f6e9d3;
+  --warn-ink:#4a3410;
+  --screen:#05070a;
+  --glow:#e8f0ff;
+  --code-bg:#e2e6e1;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#15191b;
+    --ink:#e6e9e4;
+    --muted:#9aa4a8;
+    --rule:#2c3336;
+    --accent:#8db6e3;
+    --warn-bg:#352a15;
+    --warn-ink:#f0dcb4;
+    --code-bg:#222a2d;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:1rem}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+  font-size:1.125rem;
+  line-height:1.7;
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+}
+main{max-width:42rem;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+h1{font-size:2.3rem;line-height:1.15;margin:0 0 .75rem;letter-spacing:-.01em}
+h2{font-size:1.5rem;line-height:1.25;margin:3rem 0 .75rem;padding-top:1.25rem;border-top:1px solid var(--rule)}
+h3{font-size:1.15rem;margin:1.75rem 0 .5rem}
+p{margin:0 0 1.1rem}
+a{color:var(--accent);text-underline-offset:.18em}
+a:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+code{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:3px}
+pre{background:var(--code-bg);padding:1rem;border-radius:4px;overflow-x:auto;font-size:.88rem;line-height:1.5;margin:0 0 1.25rem}
+pre code{background:none;padding:0}
+ul,ol{padding-left:1.4rem;margin:0 0 1.25rem}
+li{margin-bottom:.45rem}
+.byline{color:var(--muted);margin:0 0 1.75rem;font-size:1rem}
+.lede{font-size:1.25rem;line-height:1.6}
+.oled{
+  background:var(--screen);
+  color:var(--glow);
+  border-radius:10px;
+  padding:1.1rem 1.3rem 1rem;
+  margin:2rem 0 .6rem;
+  max-width:24rem;
+  font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  font-size:1.1rem;
+  line-height:1.45;
+  text-shadow:0 0 6px rgba(200,225,255,.45);
+}
+.oled .bar{border-top:2px solid var(--glow);margin-top:.8rem;padding-top:.55rem;display:flex;justify-content:space-between}
+.oled .btn{background:var(--glow);color:var(--screen);padding:0 .5rem;text-shadow:none;font-size:.95rem}
+.caption{font-size:.95rem;color:var(--muted);margin:0 0 2rem}
+.warn{background:var(--warn-bg);color:var(--warn-ink);padding:1.1rem 1.25rem;border-radius:4px;margin:2rem 0}
+.warn p{margin:0 0 .6rem}
+.warn ul{margin:0}
+.warn li{margin-bottom:.25rem}
+figure{margin:2rem 0}
+svg{width:100%;height:auto;display:block}
+.box{fill:none;stroke:var(--ink);stroke-width:1.5}
+.dev{fill:var(--screen);stroke:var(--screen)}
+.lbl{fill:var(--ink);font:15px Georgia,serif}
+.sub{fill:var(--muted);font:12.5px Georgia,serif}
+.devlbl{fill:var(--glow);font:15px Georgia,serif}
+.arrow{stroke:var(--accent);stroke-width:1.8;fill:none}
+.head{fill:var(--accent)}
+details{border-top:1px solid var(--rule);padding:.8rem 0}
+details:last-of-type{border-bottom:1px solid var(--rule)}
+summary{cursor:pointer;font-weight:bold}
+details p,details ul{margin-top:.7rem}
+footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.95rem}
+@media (max-width:30rem){
+  h1{font-size:1.85rem}
+  body{font-size:1.05rem}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Signing Nostr events with a Trezor Model One: a lab experiment</h1>
+<p class="byline">By Codepocketdev, Nairobi. 17 November 2026. <a href="https://github.com/Codepocketdev/trezor-one-lab">Source code on GitHub</a></p>
+
+<p class="lede">I patched the legacy firmware of a Trezor Model One so it can sign Nostr events. The device shows the whole event on its screen and signs only after I press a button. A small Python bridge lets real Nostr clients ask for signatures over NIP-46.</p>
+
+<div class="oled" role="img" aria-label="Trezor screen reading: Kind 1 note, No tags, Text 11 chars, with Cancel and Next buttons">
+<div>Kind 1 note</div>
+<div>No tags</div>
+<div>Text: 11 chars</div>
+<div class="bar"><span class="btn">x Cancel</span><span class="btn">Next</span></div>
+</div>
+<p class="caption">The first review page on the device, before the text and tags are shown in full.</p>
+
+<div class="warn">
+<p>This is a lab experiment. Do not use it for real funds or a real Nostr identity.</p>
+<ul>
+<li>The firmware is unofficial, unsigned and unaudited.</li>
+<li>Flashing it wipes any seed on the device, every time.</li>
+<li>The Model One has no secure element and a known physical-extraction weakness.</li>
+<li>Use a spare device and throwaway keys. No firmware binaries are published, so you must build your own.</li>
+</ul>
+</div>
+
+<p>This project is independent. It is not affiliated with, endorsed by or supported by SatoshiLabs or Trezor. TREZOR and TREZOR ONE are registered trademarks of SatoshiLabs Group a.s. &ldquo;For Trezor Model One&rdquo; is used only to say which hardware this runs on.</p>
+
+<h2>Why I built it</h2>
+<p>A Nostr identity is a key, and most people keep it in a browser extension or a phone app. A hardware wallet can protect a key much better, but stock Trezor firmware does not sign Nostr events. I wanted to see how far a small, readable patch could go: keep the key on the device, show exactly what is signed, and work with existing clients through a standard protocol instead of a custom app.</p>
+
+<h2>How it works</h2>
+<p>There are three pieces: firmware patches, host tools that talk to the device with <code>trezorctl</code>, and a NIP-46 bridge that runs on the PC with the Trezor attached.</p>
+
+<figure>
+<svg viewBox="0 0 700 150" role="img" aria-label="Nostr client connects through a relay to the bridge on the PC, which connects over USB to the Trezor Model One">
+<rect class="box" x="6" y="40" width="140" height="70" rx="6"/>
+<text class="lbl" x="76" y="72" text-anchor="middle">Nostr client</text>
+<text class="sub" x="76" y="92" text-anchor="middle">Coracle, noStrudel</text>
+<rect class="box" x="206" y="40" width="130" height="70" rx="6"/>
+<text class="lbl" x="271" y="72" text-anchor="middle">Relay</text>
+<text class="sub" x="271" y="92" text-anchor="middle">NIP-46 messages</text>
+<rect class="box" x="396" y="40" width="130" height="70" rx="6"/>
+<text class="lbl" x="461" y="72" text-anchor="middle">Bridge</text>
+<text class="sub" x="461" y="92" text-anchor="middle">on the PC</text>
+<rect class="dev" x="586" y="40" width="108" height="70" rx="6"/>
+<text class="devlbl" x="640" y="72" text-anchor="middle">Trezor</text>
+<text class="devlbl" x="640" y="92" text-anchor="middle">Model One</text>
+<line class="arrow" x1="146" y1="75" x2="198" y2="75"/><polygon class="head" points="206,75 196,70 196,80"/>
+<line class="arrow" x1="336" y1="75" x2="388" y2="75"/><polygon class="head" points="396,75 386,70 386,80"/>
+<line class="arrow" x1="526" y1="75" x2="578" y2="75"/><polygon class="head" points="586,75 576,70 576,80"/>
+<text class="sub" x="551" y="28" text-anchor="middle">USB</text>
+<line x1="526" y1="34" x2="586" y2="34" stroke="var(--muted)" stroke-width="1"/>
+</svg>
+</figure>
+
+<p>The client asks the bridge to sign an event. The bridge checks its policy and sends the exact NIP-01 serialization to the device. I read the event on the screen. The right button signs or moves to the next page, and the left button cancels. The Nostr private key never leaves the device, and there is no auto-approve anywhere.</p>
+
+<h2>The firmware</h2>
+<p>The patches apply to upstream trezor-firmware at commit <code>9d4f7db2b06fc91e2b5d64d6d6426fb0cd44a3d7</code> (6 November 2026), legacy firmware, built unsigned with <code>PRODUCTION=0</code>. They go on in order:</p>
+<ol>
+<li>A clock home screen with the time set over USB, since the Model One has no real-time clock.</li>
+<li>The Nostr signer: public key, event signing and the on-device review pages.</li>
+<li>A mode toggle: the right button switches between the clock and a NOSTR SIGNER panel.</li>
+</ol>
+<p>To avoid changing protobuf messages, commands travel as text inside the normal Ping message. <code>NOSTRPUB</code> returns the x-only public key for the NIP-06 path <code>m/44'/1237'/0'/0/0</code>. <code>NOSTREV BEGIN</code>, <code>ADD</code> and <code>SIGN</code> transfer an event in chunks and return the id and BIP-340 signature after approval. The device signs the sha256 of exactly what it displayed.</p>
+
+<h3>What the review shows</h3>
+<ul>
+<li>A summary page with the kind, number of tags, tag names and text length.</li>
+<li>One page per tag.</li>
+<li>Pages for the text, ending with a Sign button.</li>
+</ul>
+<p>Limits: ASCII only, content up to 400 characters, up to 20 tags, whole event up to 900 bytes. The bridge refuses anything the device cannot show in full instead of trimming it, because a trimmed review would not be a real review.</p>
+
+<h2>The bridge</h2>
+<p><code>tools/nostr_bridge.py</code> is the signer side of NIP-46. It keeps its own transport key and connection secret in a local file that is never committed, and it prints a <code>bunker://</code> link to paste into a client. It supports <code>connect</code>, <code>get_public_key</code>, <code>sign_event</code> and <code>ping</code>. Everything else is refused, including NIP-04 and NIP-44 encryption, because the device cannot do the ECDH those need.</p>
+<p>Real clients forced two policy features:</p>
+<ul>
+<li>Allowed kinds. Only kinds 1 and 7 are forwarded to the device by default.</li>
+<li>Relay login. Coracle sent a NIP-42 login request (kind 22242) for every relay, and each would have been a device prompt. The bridge now refuses these unless a relay is allowlisted.</li>
+</ul>
+<p>noStrudel also sent two identical sign requests and produced two identical notes. The bridge now allows one device prompt per identical kind, tags and content inside a time window and reuses the first signed event for a retry.</p>
+
+<h2>What was tested</h2>
+<h3>Checked on real hardware or with real clients</h3>
+<ul>
+<li>Kind 1 events with tags were signed on the device. I reviewed every page, and checked several signed events independently: the id matches the sha256 of the NIP-01 serialization and the BIP-340 signature is valid.</li>
+<li>My NIP-44 module passes all 155 official test vectors.</li>
+<li>The bridge selftest passed on relay.primal.net and relay.snort.social.</li>
+<li>Coracle and noStrudel both logged in through the bunker link and published notes.</li>
+<li>After the policy and duplicate fixes, both clients gave one device review and one note per post, and no relay-login prompts reached the device.</li>
+<li>The home-screen mode toggle works on the device.</li>
+</ul>
+<h3>Not tested</h3>
+<ul>
+<li><code>nostrconnect://</code> login, Amethyst and Jumble.</li>
+<li><code>switch_relays</code> handling and a persistent device connection.</li>
+</ul>
+<p>Relay reliability varied: nos.lol dropped a request, relay.nsec.app timed out and relay.damus.io returned HTTP 521 once. A single relay is the most dependable setup.</p>
+
+<h2>Limits and lessons</h2>
+<details open>
+<summary>Security model</summary>
+<p>The key stays on the device and every signature is approved on its screen. The USB command channel is unauthenticated, so anything that can reach the device can ask it to sign, but it still cannot sign without a button press. The firmware has not been audited.</p>
+</details>
+<details>
+<summary>Known limits</summary>
+<ul>
+<li>Only <code>bunker://</code> links work. Clients that offer only <code>nostrconnect://</code> will not connect.</li>
+<li>No direct messages and no encryption methods.</li>
+<li>A raw nsec cannot be imported, only a key derived from a NIP-06 mnemonic.</li>
+<li>Signing is slow because <code>trezorctl</code> starts several times per request.</li>
+<li>Builds are not reproducible, because the build date and time are compiled in.</li>
+</ul>
+</details>
+<details>
+<summary>Lessons</summary>
+<ul>
+<li>Clients behave differently, so the policy layer matters as much as the cryptography.</li>
+<li>A summary is not a review. The device shows every tag and all of the text.</li>
+<li>Public relays keep what you post. Two early duplicate test notes cannot be reliably deleted.</li>
+<li>Unsigned firmware wipes the seed on every flash, so use a lab seed you are happy to burn.</li>
+</ul>
+</details>
+
+<h2>Try it</h2>
+<p>The <a href="https://github.com/Codepocketdev/trezor-one-lab">repository</a> README has the full steps. In short:</p>
+<pre><code>git apply patches/01-clock.patch
+git apply patches/02-nostr-signer.patch
+cd legacy &amp;&amp; export PRODUCTION=0
+python tools/nostr_bridge.py --relay wss://relay.primal.net</code></pre>
+<p>Build and flash a spare device, restore a throwaway seed, run the bridge and paste the <code>bunker://</code> link into a supported client. The repo also has <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/ARCHITECTURE.md">ARCHITECTURE</a>, <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/BRIDGE.md">BRIDGE</a>, <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/TESTING.md">TESTING</a>, <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/KNOWN-LIMITS.md">KNOWN-LIMITS</a> and <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/SECURITY.md">SECURITY</a> documents.</p>
+
+<h2>Licensing and security reports</h2>
+<p>The patches and scripts are LGPL-3.0, matching the legacy part of upstream trezor-firmware. The tools, including the bridge, are MIT, copyright Codepocketdev. This is not legal advice. Report vulnerabilities in upstream Trezor firmware to security@satoshilabs.com. For this repository, open a GitHub issue that contains no secrets.</p>
+
+<footer>Independent project, not affiliated with SatoshiLabs or Trezor. Lab use only.</footer>
+</main>
+</body>
+</html>
