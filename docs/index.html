@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Signing Nostr events with a Trezor Model One: a lab experiment</title>
+<title>Signing Nostr events with a hardware wallet: independent lab research</title>
 <meta name="description" content="Patched Trezor Model One firmware and a NIP-46 bridge that sign Nostr events after on-device review. Lab experiment, tested with Coracle and noStrudel.">
 <style>
 :root{
@@ -100,9 +100,10 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 </head>
 <body>
 <main>
-<h1>Signing Nostr events with a Trezor Model One: a lab experiment</h1>
-<p class="byline">By Codepocketdev, Nairobi. 17 November 2026. <a href="https://github.com/Codepocketdev/trezor-one-lab">Source code on GitHub</a></p>
+<h1>Signing Nostr events with a hardware wallet: a lab experiment</h1>
+<p class="byline">By Codepocketdev, Nairobi. 17 November 2026. <a href="https://github.com/Codepocketdev/hardware-one-lab">Source code on GitHub</a></p>
 
+<p class="byline">Tested on a Trezor Model One. Independent research, not affiliated with SatoshiLabs or Trezor.</p>
 <p class="lede">I patched the legacy firmware of a Trezor Model One so it can sign Nostr events. The device shows the whole event on its screen and signs only after I press a button. A small Python bridge lets real Nostr clients ask for signatures over NIP-46.</p>
 
 <div class="oled" role="img" aria-label="Trezor screen reading: Kind 1 note, No tags, Text 11 chars, with Cancel and Next buttons">
@@ -117,7 +118,7 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <p>This is a lab experiment. Do not use it for real funds or a real Nostr identity.</p>
 <ul>
 <li>The firmware is unofficial, unsigned and unaudited.</li>
-<li>Flashing it wipes any seed on the device, every time.</li>
+<li>Flashing it erases everything stored on the device, every time.</li>
 <li>The Model One has no secure element and a known physical-extraction weakness.</li>
 <li>Use a spare device and throwaway keys. No firmware binaries are published, so you must build your own.</li>
 </ul>
@@ -254,17 +255,17 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <li>Clients behave differently, so the policy layer matters as much as the cryptography.</li>
 <li>A summary is not a review. The device shows every tag and all of the text.</li>
 <li>Public relays keep what you post. Two early duplicate test notes cannot be reliably deleted.</li>
-<li>Unsigned firmware wipes the seed on every flash, so use a lab seed you are happy to burn.</li>
+<li>Unsigned firmware erases the device&rsquo;s stored data on every flash, so use a test device with nothing you care about.</li>
 </ul>
 </details>
 
 <h2>Try it</h2>
-<p>The <a href="https://github.com/Codepocketdev/trezor-one-lab">repository</a> README has the full steps. In short:</p>
+<p>The <a href="https://github.com/Codepocketdev/hardware-one-lab">repository</a> README has the full steps. In short:</p>
 <pre><code>git apply patches/01-clock.patch
 git apply patches/02-nostr-signer.patch
 cd legacy &amp;&amp; export PRODUCTION=0
 python tools/nostr_bridge.py --relay wss://relay.primal.net</code></pre>
-<p>Build and flash a spare device, restore a throwaway seed, run the bridge and paste the <code>bunker://</code> link into a supported client. The repo also has <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/ARCHITECTURE.md">ARCHITECTURE</a>, <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/BRIDGE.md">BRIDGE</a>, <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/TESTING.md">TESTING</a>, <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/KNOWN-LIMITS.md">KNOWN-LIMITS</a> and <a href="https://github.com/Codepocketdev/trezor-one-lab/blob/main/SECURITY.md">SECURITY</a> documents.</p>
+<p>Build and flash a spare test device, set up a throwaway test key on it, run the bridge and paste the <code>bunker://</code> link into a supported client. The repo also has <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/ARCHITECTURE.md">ARCHITECTURE</a>, <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/BRIDGE.md">BRIDGE</a>, <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/TESTING.md">TESTING</a>, <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/KNOWN-LIMITS.md">KNOWN-LIMITS</a> and <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/SECURITY.md">SECURITY</a> documents.</p>
 
 <h2>Licensing and security reports</h2>
 <p>The patches and scripts are LGPL-3.0, matching the legacy part of upstream trezor-firmware. The tools, including the bridge, are MIT, copyright Codepocketdev. This is not legal advice. Report vulnerabilities in upstream Trezor firmware to security@satoshilabs.com. For this repository, open a GitHub issue that contains no secrets.</p>
