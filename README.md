@@ -27,11 +27,12 @@ Tested on real hardware or a real client:
 - NIP-44 module passes all 155 official test vectors.
 - Bridge selftest on relay.primal.net and relay.snort.social.
 - Bridge login and published notes from Coracle and noStrudel.
+- Bridge duplicate-request handling (--dedupe-seconds): noStrudel gave one device review and one note per post.
+- Bridge default policy (kinds 1,7): kind 1 notes accepted in both clients.
 - Home-screen mode toggle: right button switches the clock and the NOSTR SIGNER panel (scripts/apply_mode1.sh).
 
 Written but not yet confirmed against a real client or device:
-- Bridge policy options --allow-kinds and --auth-relay.
-- Bridge duplicate-request handling (--dedupe-seconds).
+- Bridge --auth-relay: refusal of kind 22242 relay-login requests not yet observed.
 
 ## Threat model
 
