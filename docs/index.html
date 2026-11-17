@@ -70,6 +70,7 @@ li{margin-bottom:.45rem}
 .oled .bar{border-top:2px solid var(--glow);margin-top:.8rem;padding-top:.55rem;display:flex;justify-content:space-between}
 .oled .btn{background:var(--glow);color:var(--screen);padding:0 .5rem;text-shadow:none;font-size:.95rem}
 .caption{font-size:.95rem;color:var(--muted);margin:0 0 2rem}
+.oled.clock{text-align:center;font-size:1.35rem;padding:1.6rem 1.3rem}
 .warn{background:var(--warn-bg);color:var(--warn-ink);padding:1.1rem 1.25rem;border-radius:4px;margin:2rem 0}
 .warn p{margin:0 0 .6rem}
 .warn ul{margin:0}
@@ -151,7 +152,17 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 
 <p>The client asks the bridge to sign an event. The bridge checks its policy and sends the exact NIP-01 serialization to the device. I read the event on the screen. The right button signs or moves to the next page, and the left button cancels. The Nostr private key never leaves the device, and there is no auto-approve anywhere.</p>
 
-<h2>The firmware</h2>
+<h2>Experiment one: a clock</h2>
+<p>The first patch had nothing to do with Nostr. It turns the home screen into a clock, and it was the first test of the whole pipeline: building the firmware, flashing it, and sending a custom command to the device over USB.</p>
+<div class="oled clock" role="img" aria-label="Trezor screen showing the time 22:21:11 and the date Sat 07 Nov 2026">
+<div>22:21:11</div>
+<div>Sat 07 Nov 2026</div>
+</div>
+<p class="caption">The clock home screen on the device.</p>
+<p>The home screen shows large <code>HH:MM:SS</code> and a date line, with no logo or URL. The Model One has no real-time clock, so it starts from the build time and counts forward until the PC sets the time. The command is <code>SETTIME &lt;utc_unix_seconds&gt; [&lt;utc_offset_seconds&gt;]</code>, and it travels inside a normal Ping message, so no protobuf changes are needed. The repo includes <code>settime.ps1</code> and <code>settime.sh</code> to send the current time after each plug-in.</p>
+<p>Two caveats. The command is unauthenticated, so anyone with USB access can set the clock. And the time lives in RAM, so unplugging the device loses it. The emulator build uses the host clock until a time is sent.</p>
+
+<h2>Experiment two: the Nostr signer</h2>
 <p>The patches apply to upstream trezor-firmware at commit <code>9d4f7db2b06fc91e2b5d64d6d6426fb0cd44a3d7</code> (6 November 2026), legacy firmware, built unsigned with <code>PRODUCTION=0</code>. They go on in order:</p>
 <ol>
 <li>A clock home screen with the time set over USB, since the Model One has no real-time clock.</li>
@@ -185,6 +196,7 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <li>The bridge selftest passed on relay.primal.net and relay.snort.social.</li>
 <li>Coracle and noStrudel both logged in through the bunker link and published notes.</li>
 <li>After the policy and duplicate fixes, both clients gave one device review and one note per post, and no relay-login prompts reached the device.</li>
+<li>The clock home screen runs on the device and takes its time from <code>SETTIME</code>.</li>
 <li>The home-screen mode toggle works on the device.</li>
 </ul>
 <h3>Not tested</h3>
