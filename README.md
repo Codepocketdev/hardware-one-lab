@@ -100,6 +100,10 @@ Run on the PC with the Trezor attached. Needs python, websockets and cryptograph
 It prints a bunker:// link. Paste it into a client that supports bunker login. Use a throwaway identity.
 Other flags: --reset, --try, --allow-kinds, --auth-relay, --dedupe-seconds.
 
+## Cashu P2PK signer
+
+The device can also sign Cashu P2PK spends (experiment, lab only). See CASHU.md.
+
 ## Security
 
 Report vulnerabilities in upstream Trezor firmware to security@satoshilabs.com.
