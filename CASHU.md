@@ -16,7 +16,7 @@ The patched Model One can unlock Cashu ecash that is locked to its key (NUT-11, 
   - CASHUSIG BEGIN <len>, CASHUSIG ADD <offset> <chunk>, CASHUSIG SIGN returns the 128-hex signature after approval.
 - Limits: secret up to 600 bytes, printable ASCII, no backslashes.
 - The device refuses a secret that is not a P2PK secret, has more than one data field, or is locked to any other key.
-- Home screen: scripts/apply_cashu1.sh adds a CASHU SIGNER panel as a third mode after the clock and the Nostr signer panel. The panel display has not been confirmed on the device yet.
+- Home screen: scripts/apply_cashu1.sh adds a CASHU SIGNER panel as a third mode after the clock and the Nostr signer panel. On the device, the right button cycles the clock, the Nostr signer panel and the Cashu signer panel, and the Cashu panel reads Ready.
 
 ## What was tested
 
