@@ -22,11 +22,12 @@ The patched Model One can unlock Cashu ecash that is locked to its key (NUT-11, 
 
 - tools/cashu_device_test.py on the real device: 9 of 9 checks. The key differs from the Nostr key, signatures over sha256 of the secret verify for compact and spaced JSON, and five bad inputs are refused with the expected messages.
 - tools/cashu_mint_test.py against a local Nutshell 0.18.2 mint with a fake Lightning backend: ecash locked to the device key was refused without a signature, then redeemed with a signature made on the device. The lock had no locktime tag.
+- tools/cashu_import_token.py with a token created in cashu.me: four proofs locked to the device key, with compact JSON secrets and empty tags, were signed one by one on the device and redeemed at the local test mint. The wallet itself did not request the signatures.
 - tools/cashu_standin_signer.py is a software stand-in signer that was used first to check the flow without hardware. It holds a public test key and must never hold real funds.
 
 ## Not tested
 
-- SIG_ALL, tokens with several proofs, other mints and other wallets.
+- SIG_ALL, other mints, and wallets other than cashu.me.
 - Real funds. Everything above used fake sats on a throwaway mint.
 - Whether a lock really becomes spendable by anyone after its locktime passes. A test token is waiting for that.
 
@@ -34,6 +35,7 @@ The patched Model One can unlock Cashu ecash that is locked to its key (NUT-11, 
 
 - With SIG_INPUTS only the secret is signed, so the device cannot show the amount or the recipient. It shows the raw secret, which includes the lock key and any tags.
 - Each proof needs its own approval, so a token with many proofs means many button presses.
+- No Cashu wallet that I found can ask an external device to sign. The tests use separate scripts, so a wallet-side signer option is still missing.
 - The mint must support NUT-11. A mint that does not may treat locked ecash as spendable by anyone, so check its info endpoint before locking.
 - The Nutshell command line adds a one-day locktime by default. The test lock was created with that turned off by setting LOCKTIME_DELTA_SECONDS to 0.
 - Flashing unsigned firmware wipes the seed, as with the rest of this project.
