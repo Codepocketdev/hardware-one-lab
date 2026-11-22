@@ -1,0 +1,74 @@
+diff --git a/legacy/firmware/layout2.c b/legacy/firmware/layout2.c
+index 0217397..55ef1df 100644
+--- a/legacy/firmware/layout2.c
++++ b/legacy/firmware/layout2.c
+@@ -457,6 +457,31 @@ static void layoutDrawClock(void) {
+   oledDrawStringCenter(OLED_WIDTH / 2, 42, dbuf, FONT_STANDARD);
+ }
+ 
++// ---- Home screen mode: clock or Nostr signer panel (right button toggles) ----
++static bool home_signer_mode = false;
++
++static void layoutDrawSignerPanel(void) {
++  oledDrawStringCenter(OLED_WIDTH / 2, 2, _("NOSTR SIGNER"), FONT_STANDARD);
++  oledHLine(12);
++  if (config_isInitialized()) {
++    oledDrawStringCenter(OLED_WIDTH / 2, 17, _("Ready"), FONT_STANDARD);
++  } else {
++    oledDrawStringCenter(OLED_WIDTH / 2, 17, _("No seed yet"), FONT_STANDARD);
++  }
++  oledDrawStringCenter(OLED_WIDTH / 2, 29, _("Notes show here and"),
++                       FONT_STANDARD);
++  oledDrawStringCenter(OLED_WIDTH / 2, 38, _("need a button press"),
++                       FONT_STANDARD);
++  oledDrawStringCenter(OLED_WIDTH / 2, 48, _("Right button: clock"),
++                       FONT_STANDARD);
++}
++
++void layoutToggleHomeMode(void);
++void layoutToggleHomeMode(void) {
++  home_signer_mode = !home_signer_mode;
++  layoutHomescreen();
++}
++
+ void layoutHomescreen(void) {
+   if (layoutLast == layoutHomescreen || layoutLast == layoutScreensaver) {
+     oledClear();
+@@ -490,7 +515,11 @@ void layoutHomescreen(void) {
+   }
+ 
+ #endif
+-  layoutDrawClock();
++  if (home_signer_mode) {
++    layoutDrawSignerPanel();
++  } else {
++    layoutDrawClock();
++  }
+ 
+   bool no_backup = false;
+   bool unfinished_backup = false;
+diff --git a/legacy/firmware/trezor.c b/legacy/firmware/trezor.c
+index 4333313..0d3ef6f 100644
+--- a/legacy/firmware/trezor.c
++++ b/legacy/firmware/trezor.c
+@@ -67,6 +67,8 @@ uint32_t system_millis_lock_start = 0;
+ static uint32_t system_millis_busy_start = 0;
+ static uint32_t system_millis_busy_length = 0;
+ 
++void layoutToggleHomeMode(void);
++
+ void check_lock_screen(void) {
+   buttonUpdate();
+ 
+@@ -76,6 +78,11 @@ void check_lock_screen(void) {
+     return;
+   }
+ 
++  // short press of the right button on the home screen: clock <-> Nostr signer panel
++  if (layoutLast == layoutHomescreen && button.YesUp) {
++    layoutToggleHomeMode();
++  }
++
+   // button held for long enough (5 seconds)
+   if ((layoutLast == layoutHomescreen || layoutLast == layoutBusyscreen) &&
+       button.NoDown >= 114000 * 5) {
