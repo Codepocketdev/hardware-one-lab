@@ -10,7 +10,10 @@ from cashu.core.settings import settings
 from cashu.wallet.helpers import deserialize_token_from_string, receive
 from cashu.wallet.wallet import Wallet
 
-MINT = "http://127.0.0.1:3338"
+MINT = os.environ.get("MINT_URL", "http://127.0.0.1:3338")
+if not MINT.startswith(("http://127.0.0.1:", "http://localhost:")) and os.environ.get("ALLOW_REMOTE_MINT") != "1":
+    raise SystemExit("Refusing a remote mint (%s). Use a test mint with fake funds, or set ALLOW_REMOTE_MINT=1." % MINT)
+WALLET_NAME = os.environ.get("WALLET_NAME", "wallet")
 PENDING = "/tmp/cashu_pending.json"
 SIGS = "/tmp/cashu_sigs.json"
 
@@ -18,7 +21,10 @@ SIGS = "/tmp/cashu_sigs.json"
 def make_locked_token(lock_key, amount):
     env = dict(os.environ, MINT_URL=MINT, LOCKTIME_DELTA_SECONDS="0")
     result = subprocess.run(
-        ["poetry", "run", "cashu", "send", str(amount), "--lock", "P2PK:" + lock_key, "-y"],
+        [
+            "poetry", "run", "cashu", "-w", WALLET_NAME, "send", str(amount),
+            "--lock", "P2PK:" + lock_key, "-y",
+        ],
         env=env,
         cwd="/app",
         capture_output=True,
@@ -48,7 +54,7 @@ def patch_wallet(lock_key, sigs):
 
 
 async def open_wallet():
-    wallet = await Wallet.with_db(MINT, os.path.join(settings.cashu_dir, "wallet"))
+    wallet = await Wallet.with_db(MINT, os.path.join(settings.cashu_dir, WALLET_NAME))
     await wallet.load_mint()
     return wallet
 
@@ -83,7 +89,7 @@ async def redeem():
     patch_wallet(pending["lock"], sigs)
     wallet = await open_wallet()
     await receive(wallet, deserialize_token_from_string(pending["token"]))
-    print("redeemed with the device signature")
+    print("redeemed with the device signature on", MINT)
 
 
 def main():
