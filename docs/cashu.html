@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spending Cashu ecash with a hardware key: independent lab research</title>
+<meta name="description" content="A patched Trezor Model One signs the spend of Cashu ecash locked to its key (NUT-11). Lab experiment on a local test mint.">
+<style>
+:root{--paper:#eef0ec;--ink:#171b1d;--muted:#586166;--rule:#cfd4cf;--accent:#2f5d8a;--warn-bg:#f6e9d3;--warn-ink:#4a3410;--code-bg:#e2e6e1}
+@media (prefers-color-scheme:dark){:root{--paper:#15191b;--ink:#e6e9e4;--muted:#9aa4a8;--rule:#2c3336;--accent:#8db6e3;--warn-bg:#352a15;--warn-ink:#f0dcb4;--code-bg:#222a2d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-size:1.125rem;line-height:1.7;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:42rem;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+h1{font-size:2.3rem;line-height:1.15;margin:0 0 .75rem;letter-spacing:-.01em}
+h2{font-size:1.5rem;line-height:1.25;margin:3rem 0 .75rem;padding-top:1.25rem;border-top:1px solid var(--rule)}
+p{margin:0 0 1.1rem}
+a{color:var(--accent);text-underline-offset:.18em}
+code{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-size:.88em;background:var(--code-bg);padding:.1em .35em;border-radius:3px}
+pre{background:var(--code-bg);padding:1rem;border-radius:4px;overflow-x:auto;font-size:.88rem;line-height:1.5;margin:0 0 1.25rem}
+pre code{background:none;padding:0}
+ul{padding-left:1.4rem;margin:0 0 1.25rem}
+li{margin-bottom:.45rem}
+.byline{color:var(--muted);margin:0 0 1rem;font-size:1rem}
+.lede{font-size:1.25rem;line-height:1.6}
+.warn{background:var(--warn-bg);color:var(--warn-ink);padding:1.1rem 1.25rem;border-radius:4px;margin:2rem 0}
+.warn p{margin:0 0 .6rem}
+.warn ul{margin:0}
+.shot{margin:2rem 0}
+.shot img{width:100%;height:auto;border-radius:6px;display:block}
+.caption{font-size:.95rem;color:var(--muted);margin:.6rem 0 0}
+footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);color:var(--muted);font-size:.95rem}
+@media (max-width:30rem){h1{font-size:1.85rem}body{font-size:1.05rem}}
+</style>
+</head>
+<body>
+<main>
+<h1>Spending Cashu ecash with a hardware key: a lab experiment</h1>
+<p class="byline">By Codepocketdev, Nairobi. 22 November 2026, tests run on 20 November 2026. <a href="index.html">Main write-up</a> &middot; <a href="https://github.com/Codepocketdev/hardware-one-lab">Source code on GitHub</a></p>
+<p class="byline">Tested on a Trezor Model One. Independent research, not affiliated with SatoshiLabs or Trezor.</p>
+
+<p class="lede">I added a third mode to my patched Trezor Model One. It signs the spend of Cashu ecash that is locked to its key: the device checks the lock, shows the raw secret page by page, and signs only after a button press. A mint accepted the signature, including for a token created in cashu.me.</p>
+
+<div class="warn">
+<p>This is a lab experiment. Do not use it with real funds.</p>
+<ul>
+<li>Everything was tested on a local test mint with fake funds. No sats were locked or spent on a real mint.</li>
+<li>The firmware is unofficial, unsigned and unaudited. The lab device&rsquo;s recovery words were exposed during the work, so its keys are public.</li>
+<li>Use a spare device and throwaway keys only.</li>
+</ul>
+</div>
+
+<h2>How a locked proof is spent</h2>
+<p>Cashu ecash is made of proofs, and each proof carries a secret. NUT-11 lets a sender lock a proof to a public key. The secret becomes a short JSON text naming the key, and the mint refuses to swap the proof unless the spender attaches a valid signature. That signature is a BIP-340 Schnorr signature over the SHA-256 hash of the secret string, the same primitive the device already uses for Nostr. The mint compares keys by x-coordinate only, so the device&rsquo;s x-only key works as a lock key with a <code>02</code> prefix.</p>
+
+<h2>What the device does</h2>
+<ul>
+<li>Key: <code>m/44'/1237'/2'/0/0</code>, a separate path from the Nostr key, so ecash and a Nostr identity are not linked.</li>
+<li>Commands travel inside the normal Ping message: <code>CASHUPUB</code> returns the x-only key, and <code>CASHUSIG BEGIN</code>, <code>ADD</code> and <code>SIGN</code> transfer a secret and return the signature after approval.</li>
+<li>It signs only a P2PK secret with exactly one data field whose lock key is its own, written as <code>02</code> or <code>03</code> plus its x-only key. The secret must be printable ASCII, at most 600 bytes, with no backslashes. Anything else is refused and nothing is signed.</li>
+<li>Review: a summary page (&ldquo;Cashu P2PK lock&rdquo;, &ldquo;Lock key is ours&rdquo;, the length), then the raw secret at 80 characters per page, ending with a Sign button. The left button cancels at any point.</li>
+<li>Home screen: the right button now cycles the clock, the Nostr signer panel and the Cashu signer panel, which reads &ldquo;Ready&rdquo;.</li>
+</ul>
+
+<h2>What was tested</h2>
+<ul>
+<li>On the device, a test script passed 9 of 9 checks: the Cashu key differs from the Nostr key, signatures over the SHA-256 of the secret verify for compact and spaced JSON, and five bad inputs were refused (locked to another key, not P2PK, a backslash, non-ASCII text, two data fields).</li>
+<li>On a local Nutshell 0.18.2 mint with a fake Lightning backend, which reports NUT-11 as supported, ecash locked to the device key was refused without a signature. It was then redeemed with a signature made on the device. A software stand-in signer was used first to check the flow before the device replaced it.</li>
+<li>With cashu.me, a token locked to the device key was created: four proofs with compact secrets and empty tags. Each was signed on the device, one review round per proof, and the local test mint paid out 14 sat.</li>
+</ul>
+
+<h2>Not tested</h2>
+<ul>
+<li>Spending on a real mint. The Minibits mint&rsquo;s info endpoint reports NUT-11 as supported, but nothing was locked or spent there.</li>
+<li>The <code>SIG_ALL</code> flag, wallets other than cashu.me, and Nostr zaps with ecash.</li>
+<li>Whether a lock really lapses after its locktime when no refund key is set.</li>
+<li>Any wallet asking the device to sign. In every test a separate script requested the signatures, not the wallet.</li>
+</ul>
+
+<h2>Limits</h2>
+<ul>
+<li>With <code>SIG_INPUTS</code> only the secret is signed, so the device cannot show an amount or a recipient. It shows the raw secret with the lock key and any tags, and the signature acts as a bearer approval for that proof.</li>
+<li>Each proof needs its own approval, so a token with four proofs took four rounds of button presses.</li>
+<li>I found no Cashu wallet that can ask an external device to sign. Nostr&rsquo;s signer protocols do not carry arbitrary signing requests either, so a wallet-side hook is still missing.</li>
+<li>The mint must support NUT-11. A mint that does not may treat locked ecash as spendable by anyone.</li>
+<li>The Nutshell command line adds a one-day locktime to locks by default. The tests turned that off with <code>LOCKTIME_DELTA_SECONDS=0</code>.</li>
+</ul>
+
+<h2>Try it</h2>
+<p>The <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/CASHU.md">CASHU.md</a> file in the repository has the design and test notes. In short, apply <code>scripts/apply_cashu1.sh</code> after the earlier patches, build and flash a spare device, then run:</p>
+<pre><code>python tools/cashu_device_test.py</code></pre>
+<p>The mint tests are <code>tools/cashu_mint_test.py</code>, <code>tools/cashu_import_token.py</code> and <code>tools/cashu_sign_secrets.py</code>. The mint test refuses any mint that is not local unless you override it.</p>
+
+<footer>Independent project, not affiliated with SatoshiLabs or Trezor. Lab use only. <a href="index.html">Main write-up</a></footer>
+</main>
+</body>
+</html>
