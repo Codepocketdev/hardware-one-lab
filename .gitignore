@@ -13,3 +13,6 @@ nostr_event.json
 cashu_pending.json
 cashu_sigs.json
 *.token
+.vercel
+.env.local
+__pycache__/
