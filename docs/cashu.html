@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Spending Cashu ecash with a hardware key: independent lab research</title>
-<meta name="description" content="A patched Trezor Model One signs the spend of Cashu ecash locked to its key (NUT-11). Lab experiment on a local test mint.">
+<meta name="description" content="A patched Trezor Model One signs the spend of Cashu ecash locked to its key (NUT-11). Lab experiment on a local test mint and one real-mint test.">
 <style>
 :root{--paper:#eef0ec;--ink:#171b1d;--muted:#586166;--rule:#cfd4cf;--accent:#2f5d8a;--warn-bg:#f6e9d3;--warn-ink:#4a3410;--code-bg:#e2e6e1}
 @media (prefers-color-scheme:dark){:root{--paper:#15191b;--ink:#e6e9e4;--muted:#9aa4a8;--rule:#2c3336;--accent:#8db6e3;--warn-bg:#352a15;--warn-ink:#f0dcb4;--code-bg:#222a2d}}
@@ -35,16 +35,16 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <body>
 <main>
 <h1>Spending Cashu ecash with a hardware key: a lab experiment</h1>
-<p class="byline">By Codepocketdev, Nairobi. 22 November 2026, tests run on 20 November 2026. <a href="index.html">Main write-up</a> &middot; <a href="https://github.com/Codepocketdev/hardware-one-lab">Source code on GitHub</a></p>
+<p class="byline">By Codepocketdev, Nairobi. 22 November 2026, tests run on 20 and 22 November 2026. <a href="index.html">Main write-up</a> &middot; <a href="https://github.com/Codepocketdev/hardware-one-lab">Source code on GitHub</a></p>
 <p class="byline">Tested on a Trezor Model One. Independent research, not affiliated with SatoshiLabs or Trezor.</p>
 
-<p class="lede">I added a third mode to my patched Trezor Model One. It signs the spend of Cashu ecash that is locked to its key: the device checks the lock, shows the raw secret page by page, and signs only after a button press. A mint accepted the signature, including for a token created in cashu.me.</p>
+<p class="lede">I added a third mode to my patched Trezor Model One. It signs the spend of Cashu ecash that is locked to its key: the device checks the lock, shows the raw secret page by page, and signs only after a button press. Mints accepted the signature: a local test mint, and once a real mint, where an 8 sat token created in Minibits was spent on mint.minibits.cash.</p>
 
 <div class="warn">
 <p>This is a lab experiment. Do not use it with real funds.</p>
 <ul>
-<li>Everything was tested on a local test mint with fake funds. No sats were locked or spent on a real mint.</li>
-<li>The firmware is unofficial, unsigned and unaudited. The lab device&rsquo;s recovery words were exposed during the work, so its keys are public.</li>
+<li>Everything except one test ran on a local test mint with fake funds. That one test spent a single 8 sat token on a real mint (mint.minibits.cash) on 22 November 2026.</li>
+<li>The firmware is unofficial, unsigned and unaudited. The lab device&rsquo;s recovery words were exposed during the work, so its keys are public. The real-mint test used a freshly generated seed instead.</li>
 <li>Use a spare device and throwaway keys only.</li>
 </ul>
 </div>
@@ -66,11 +66,14 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <li>On the device, a test script passed 9 of 9 checks: the Cashu key differs from the Nostr key, signatures over the SHA-256 of the secret verify for compact and spaced JSON, and five bad inputs were refused (locked to another key, not P2PK, a backslash, non-ASCII text, two data fields).</li>
 <li>On a local Nutshell 0.18.2 mint with a fake Lightning backend, which reports NUT-11 as supported, ecash locked to the device key was refused without a signature. It was then redeemed with a signature made on the device. A software stand-in signer was used first to check the flow before the device replaced it.</li>
 <li>With cashu.me, a token locked to the device key was created: four proofs with compact secrets and empty tags. Each was signed on the device, one review round per proof, and the local test mint paid out 14 sat.</li>
+<li>On a real mint, on 22 November 2026: an 8 sat cashuB token, created in Minibits and locked to the device key, was spent on mint.minibits.cash. The device showed “Lock key is ours” and the 171-character secret over 3 pages, and signed on the last page. The mint accepted the signature with no fee, and the new proofs were received in cashu.me. A host tool, not a wallet, built and sent the swap.</li>
+<li>A second test script, tools/cashu_negative_test.py, ran 28 checks on the device and all passed. Twenty-one automatic checks were each refused with the firmware’s own message before any button prompt: wrong command order, bad lengths, a wrong or truncated lock key, a 04 key prefix, not P2PK, a missing closing bracket, two or no data fields, a backslash, non-ASCII text, a control character, and a wipe of the loaded secret after a refusal. With button presses, cancelling on the first page and on the last page both produced no signature, and a bare SIGN afterwards was refused. An approved signature verified for the secret and failed for an altered secret and for another key.</li>
+<li>On the home screen of the real device, the right button cycled the clock, the Nostr signer panel and the Cashu signer panel.</li>
 </ul>
 
 <h2>Not tested</h2>
 <ul>
-<li>Spending on a real mint. The Minibits mint&rsquo;s info endpoint reports NUT-11 as supported, but nothing was locked or spent there.</li>
+<li>Spending beyond one proof on a real mint. Only a single 8 sat proof on Minibits was spent; other mints, larger tokens and several proofs on a real mint were not tested.</li>
 <li>The <code>SIG_ALL</code> flag, wallets other than cashu.me, and Nostr zaps with ecash.</li>
 <li>Whether a lock really lapses after its locktime when no refund key is set.</li>
 <li>Any wallet asking the device to sign. In every test a separate script requested the signatures, not the wallet.</li>
@@ -80,15 +83,17 @@ footer{margin-top:3.5rem;padding-top:1.25rem;border-top:1px solid var(--rule);co
 <ul>
 <li>With <code>SIG_INPUTS</code> only the secret is signed, so the device cannot show an amount or a recipient. It shows the raw secret with the lock key and any tags, and the signature acts as a bearer approval for that proof.</li>
 <li>Each proof needs its own approval, so a token with four proofs took four rounds of button presses.</li>
+<li>Newer mints use 33-byte keyset IDs (starting with 01), while a cashuB token carries only the first 8 bytes. The host tool has to look up the full ID in the mint’s keyset list before any request, or the mint refuses it.</li>
+<li>Redeeming swaps the locked proof for new unlocked proofs, so the result is a plain bearer token until a wallet imports it. The host tool does the swap, not a wallet, and it does not verify the mint’s DLEQ proofs.</li>
 <li>I found no Cashu wallet that can ask an external device to sign. Nostr&rsquo;s signer protocols do not carry arbitrary signing requests either, so a wallet-side hook is still missing.</li>
 <li>The mint must support NUT-11. A mint that does not may treat locked ecash as spendable by anyone.</li>
 <li>The Nutshell command line adds a one-day locktime to locks by default. The tests turned that off with <code>LOCKTIME_DELTA_SECONDS=0</code>.</li>
 </ul>
 
 <h2>Try it</h2>
-<p>The <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/CASHU.md">CASHU.md</a> file in the repository has the design and test notes. In short, apply <code>scripts/apply_cashu1.sh</code> after the earlier patches, build and flash a spare device, then run:</p>
+<p>The <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/CASHU.md">CASHU.md</a> file in the repository has the design and test notes. In short, apply patches 01 to 04 from the patches folder, in order, with git apply, build and flash a spare device, then run:</p>
 <pre><code>python tools/cashu_device_test.py</code></pre>
-<p>The mint tests are <code>tools/cashu_mint_test.py</code>, <code>tools/cashu_import_token.py</code> and <code>tools/cashu_sign_secrets.py</code>. The mint test refuses any mint that is not local unless you override it.</p>
+<p>The mint tests are <code>tools/cashu_mint_test.py</code>, <code>tools/cashu_import_token.py</code> and <code>tools/cashu_sign_secrets.py</code>. The mint test refuses any mint that is not local unless you override it. tools/cashu_sign.py decodes cashuA and cashuB tokens (show) and redeems a locked token on a mint (redeem is a dry run unless --send is added); unlike the mint test, it does not refuse real mints. tools/cashu_negative_test.py runs the refusal and cancel tests.</p>
 
 <footer>Independent project, not affiliated with SatoshiLabs or Trezor. Lab use only. <a href="index.html">Main write-up</a></footer>
 </main>

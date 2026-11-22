@@ -67,6 +67,8 @@ Tested on real hardware or a real client:
     git submodule update --init --depth 1 vendor/nanopb vendor/libopencm3 vendor/secp256k1-zkp vendor/QR-Code-generator vendor/ts-tvl
     git apply /path/to/patches/01-clock.patch
     git apply /path/to/patches/02-nostr-signer.patch
+git apply /path/to/patches/03-mode-toggle.patch
+git apply /path/to/patches/04-cashu.patch
     cd legacy && unset EMULATOR HEADLESS DEBUG_LINK && export PRODUCTION=0
     TZ=Africa/Nairobi uv run ./script/cibuild
 

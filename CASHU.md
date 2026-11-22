@@ -43,3 +43,11 @@ The patched Model One can unlock Cashu ecash that is locked to its key (NUT-11, 
 ## Try it
 
 Apply scripts/apply_cashu1.sh after the earlier patches, build and flash a spare device, restore a throwaway test seed, then run python tools/cashu_device_test.py with the device attached.
+
+## Real-mint test and refusal tests (22 November 2026)
+
+- Real mint: an 8 sat cashuB token created in Minibits, locked to the device key, was spent on mint.minibits.cash with `tools/cashu_sign.py redeem --send`. The device showed the 171-character secret over 3 pages and signed on the last page. The mint accepted the witness with no fee and the new proofs were received in cashu.me. The device had a freshly generated seed.
+- Newer mints use 33-byte keyset IDs while a cashuB token carries the first 8 bytes. The host tool looks up the full ID in the mint's keyset list before any request.
+- `tools/cashu_negative_test.py`: 28 of 28 checks passed on the device (21 automatic refusals, cancel on the first and last page, a bare SIGN refused after each cancel, an approved signature valid for the secret and invalid for an altered secret and for another key).
+- Patches 01 to 04 applied in order to the base commit reproduce the flashed firmware (layout2.c, fsm_msg_common.h, trezor.c identical).
+- Not covered: DLEQ verification, several proofs on a real mint, other mints, SIG_ALL, wallets that ask the device to sign.
