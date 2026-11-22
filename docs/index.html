@@ -276,7 +276,7 @@ python tools/nostr_bridge.py --relay wss://relay.primal.net</code></pre>
 <p>Build and flash a spare test device, set up a throwaway test key on it, run the bridge and paste the <code>bunker://</code> link into a supported client. The repo also has <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/ARCHITECTURE.md">ARCHITECTURE</a>, <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/BRIDGE.md">BRIDGE</a>, <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/TESTING.md">TESTING</a>, <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/KNOWN-LIMITS.md">KNOWN-LIMITS</a> and <a href="https://github.com/Codepocketdev/hardware-one-lab/blob/main/SECURITY.md">SECURITY</a> documents.</p>
 
 <h2>Spending ecash with the device</h2>
-<p>The same device can sign the spend of Cashu ecash locked to its key. It was tested on a local test mint only. <a href="cashu.html">Read the Cashu write-up</a>.</p>
+<p>The same device can sign the spend of Cashu ecash locked to its key. It was tested on a local test mint, plus one 8 sat spend on a real mint (Minibits). <a href="cashu.html">Read the Cashu write-up</a>.</p>
 
 <h2>Licensing and security reports</h2>
 <p>The patches and scripts are LGPL-3.0, matching the legacy part of upstream trezor-firmware. The tools, including the bridge, are MIT, copyright Codepocketdev. This is not legal advice. Report vulnerabilities in upstream Trezor firmware to security@satoshilabs.com. For this repository, open a GitHub issue that contains no secrets.</p>
