@@ -51,3 +51,18 @@ Apply scripts/apply_cashu1.sh after the earlier patches, build and flash a spare
 - `tools/cashu_negative_test.py`: 28 of 28 checks passed on the device (21 automatic refusals, cancel on the first and last page, a bare SIGN refused after each cancel, an approved signature valid for the secret and invalid for an altered secret and for another key).
 - Patches 01 to 04 applied in order to the base commit reproduce the flashed firmware (layout2.c, fsm_msg_common.h, trezor.c identical).
 - Not covered: DLEQ verification, several proofs on a real mint, other mints, SIG_ALL, wallets that ask the device to sign.
+
+## 2-of-2 test (local test mint)
+
+A token locked 2-of-2 (device key as `data`, a software key in the `pubkeys` tag, `n_sigs` = 2) was minted on a local Nutshell 0.18.2 test mint with a fake Lightning wallet. Script: `tools/cashu_2of2_test.py`. Result: PASS 6, FAIL 0.
+
+- Rejected: device signature only, software signature only, device plus a wrong second key, the same signature twice.
+- Accepted: device plus software signature.
+- Rejected: replay of the spent proof.
+
+Limits:
+
+- Local test mint with fake funds. Not tried on a real mint.
+- The second key is a software key, not hardware.
+- The device key must be `data`. The firmware does not parse tags, so it cannot yet sign when its key is only in `pubkeys`.
+- The firmware does not read `n_sigs`, so the display is the only check that the lock requires two signatures.
