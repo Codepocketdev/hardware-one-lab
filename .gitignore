@@ -16,3 +16,4 @@ cashu_sigs.json
 .vercel
 .env.local
 __pycache__/
+2of2_recovery_*.json
