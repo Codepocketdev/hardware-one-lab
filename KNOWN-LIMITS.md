@@ -12,3 +12,11 @@
 - Events published to public relays cannot be reliably deleted.
 - Builds are not reproducible because the build date and time are compiled in.
 - Time is kept in RAM, so unplugging loses it.
+- Cashu: only a P2PK secret with exactly one data field holding the device's own key. Printable ASCII, 60 to 600 characters, no backslashes.
+- Cashu: the firmware does not parse tags. The device key must be the data key, n_sigs is not read, there is no locktime warning, and SIG_ALL is not supported. Only the on-screen secret shows that two signatures are needed.
+- Cashu: with SIG_INPUTS the signature does not cover the swap outputs, and the device shows only the secret. The approval is a bearer approval for that proof.
+- Cashu: each proof needs its own button approval.
+- Cashu: no wallet asks the device to sign. Scripts and tools/cashu_bridge.py do. The bridge signs any input locked to the device key plus another key with n_sigs of 2 or more, so run it on a local test mint only.
+- Cashu: the host tool does not verify the mint's DLEQ proofs. Newer mints use 33-byte keyset IDs that a cashuB token carries only in part, so the full ID is looked up from the mint.
+- Cashu: the Nutshell command line adds a one-day locktime by default. The tests turned it off with LOCKTIME_DELTA_SECONDS=0.
+- Cashu: the real-mint test was one 8 sat proof. The lab device's recovery words were exposed, so its keys are public. Use a spare device and throwaway keys.

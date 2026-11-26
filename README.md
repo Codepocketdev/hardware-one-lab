@@ -55,9 +55,9 @@ Tested on real hardware or a real client:
 
 ## What is in this repo
 
-- patches/01-clock.patch, patches/02-nostr-signer.patch: diffs against upstream commit 9d4f7db2b06fc91e2b5d64d6d6426fb0cd44a3d7 (6 Nov 2026). 02 applies on top of 01.
-- scripts/: apply_clock3.sh, apply_nostr1.sh to apply_nostr4.sh, apply_mode1.sh, vps_setup.sh, settime.sh, settime.ps1. Re-running an earlier script can remove later patches.
-- tools/: nostr_bridge.py, nostr_send.py, nostr_ref.py, nip44.py, test_nip44.py.
+- patches/01-clock.patch, patches/02-nostr-signer.patch, patches/03-mode-toggle.patch, patches/04-cashu.patch: diffs against upstream commit 9d4f7db2b06fc91e2b5d64d6d6426fb0cd44a3d7 (6 Nov 2026). Apply 01 to 04 in order.
+- scripts/: apply_clock3.sh, apply_nostr1.sh to apply_nostr4.sh, apply_mode1.sh, vps_setup.sh, settime.sh, settime.ps1. Re-running an earlier script can remove later patches. apply_cashu1.sh is superseded by patches/04-cashu.patch; do not run it on a tree that already has the patches.
+- tools/: nostr_bridge.py, nostr_send.py, nostr_ref.py, nip44.py, test_nip44.py. Cashu: cashu_sign.py, cashu_device_test.py, cashu_mint_test.py, cashu_import_token.py, cashu_sign_secrets.py, cashu_negative_test.py, cashu_2of2_test.py, cashu_2of2_cashume.py, cashu_bridge.py, cashu_p2pk_test.py, cashu_standin_signer.py. CASHU.md has the Cashu design and test notes.
 
 ## Build (device)
 
@@ -67,8 +67,8 @@ Tested on real hardware or a real client:
     git submodule update --init --depth 1 vendor/nanopb vendor/libopencm3 vendor/secp256k1-zkp vendor/QR-Code-generator vendor/ts-tvl
     git apply /path/to/patches/01-clock.patch
     git apply /path/to/patches/02-nostr-signer.patch
-git apply /path/to/patches/03-mode-toggle.patch
-git apply /path/to/patches/04-cashu.patch
+    git apply /path/to/patches/03-mode-toggle.patch
+    git apply /path/to/patches/04-cashu.patch
     cd legacy && unset EMULATOR HEADLESS DEBUG_LINK && export PRODUCTION=0
     TZ=Africa/Nairobi uv run ./script/cibuild
 

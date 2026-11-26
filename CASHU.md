@@ -23,12 +23,12 @@ The patched Model One can unlock Cashu ecash that is locked to its key (NUT-11, 
 - tools/cashu_device_test.py on the real device: 9 of 9 checks. The key differs from the Nostr key, signatures over sha256 of the secret verify for compact and spaced JSON, and five bad inputs are refused with the expected messages.
 - tools/cashu_mint_test.py against a local Nutshell 0.18.2 mint with a fake Lightning backend: ecash locked to the device key was refused without a signature, then redeemed with a signature made on the device. The lock had no locktime tag.
 - tools/cashu_import_token.py with a token created in cashu.me: four proofs locked to the device key, with compact JSON secrets and empty tags, were signed one by one on the device and redeemed at the local test mint. The wallet itself did not request the signatures.
-- tools/cashu_standin_signer.py is a software stand-in signer that was used first to check the flow without hardware. It holds a public test key and must never hold real funds.
+- tools/cashu_standin_signer.py is a software stand-in signer that was used first to check the flow without hardware. It holds a public test key and must never hold real funds. The real-mint spend, the 28 device checks, the 2-of-2 tests and the bridge are described in the sections at the end of this file.
 
 ## Not tested
 
-- SIG_ALL, other mints, and wallets other than cashu.me.
-- Real funds. Everything above used fake sats on a throwaway mint.
+- SIG_ALL, other mints, wallets other than cashu.me, 2-of-3 and the refund path.
+- Real funds beyond one 8 sat proof. Everything in this list used fake sats on a throwaway mint; the single real-mint spend is described below.
 - Whether a lock really becomes spendable by anyone after its locktime passes. A test token is waiting for that.
 
 ## Limits and risks
@@ -42,7 +42,7 @@ The patched Model One can unlock Cashu ecash that is locked to its key (NUT-11, 
 
 ## Try it
 
-Apply scripts/apply_cashu1.sh after the earlier patches, build and flash a spare device, restore a throwaway test seed, then run python tools/cashu_device_test.py with the device attached.
+Apply patches/03-mode-toggle.patch and patches/04-cashu.patch after 01 and 02 (build steps in README.md), build and flash a spare device, restore a throwaway test seed, then run python tools/cashu_device_test.py with the device attached.
 
 ## Real-mint test and refusal tests (22 November 2026)
 
@@ -66,3 +66,16 @@ Limits:
 - The second key is a software key, not hardware.
 - The device key must be `data`. The firmware does not parse tags, so it cannot yet sign when its key is only in `pubkeys`.
 - The firmware does not read `n_sigs`, so the display is the only check that the lock requires two signatures.
+
+## 2-of-2 with cashu.me and a bridge (24 November 2026)
+
+A token was minted on the local test mint, locked to the device key (`data`) plus a throwaway cashu.me public key (`pubkeys`), with `n_sigs` 2. cashu.me showed it as locked to it, and Receive failed with the mint's "not enough pubkeys (2) or signatures (1) present for n_sigs (2)".
+
+`tools/cashu_bridge.py` then sat between cashu.me and the mint on the PC. When cashu.me sent its swap with one signature, the bridge asked the device to sign the same secret, the person pressed through the 4 pages and Sign, and the bridge added the device signature to the witness. The mint accepted both signatures and cashu.me received 7 sat (8 sat minus a 1 sat fee).
+
+Limits:
+
+- The bridge is a stand-in for a wallet hook. cashu.me never asked the device for anything; the bridge did.
+- With `SIG_INPUTS` the signatures do not cover the swap outputs, and the device shows only the secret, so a malicious bridge or PC could send the money elsewhere after the button press.
+- The bridge signs any input locked to the device key plus another key with `n_sigs` of 2 or more. It listens on 127.0.0.1 and refuses non-local upstreams. Use it on a local test mint only.
+- Tested with one wallet and one proof.
